@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — OritalPlay</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:Inter,sans-serif;background:#010C14;color:#EEF8FF;min-height:100vh;}
+:root{--accent:#A8E6FF;--border:rgba(168,230,255,0.12);--card:#001828;--muted:rgba(168,230,255,0.5);--blue:#1A6F9A;--blaze:#FF2D2D;--green:#4ADE80;--red:#F87171;}
+.login{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:1rem;}
+.login-box{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:2rem;width:100%;max-width:360px;text-align:center;}
+.login-box h1{font-family:'Bebas Neue',cursive;font-size:1.8rem;letter-spacing:0.08em;margin-bottom:0.5rem;}
+.login-box p{font-size:0.82rem;color:var(--muted);margin-bottom:1.5rem;}
+.app{display:none;min-height:100vh;}
+.sidebar{position:fixed;top:0;left:0;height:100vh;width:200px;background:rgba(0,16,28,0.97);border-right:1px solid var(--border);padding:1.25rem 0;z-index:100;}
+.sidebar h2{font-family:'Bebas Neue',cursive;font-size:1.2rem;letter-spacing:0.08em;padding:0 1rem 1rem;border-bottom:1px solid var(--border);margin-bottom:0.75rem;}
+.snav{display:flex;align-items:center;gap:8px;padding:0.55rem 1rem;font-size:0.82rem;color:var(--muted);cursor:pointer;border-left:2px solid transparent;transition:all 0.15s;}
+.snav:hover{color:#EEF8FF;background:rgba(168,230,255,0.05);}
+.snav.active{color:var(--accent);border-left-color:var(--accent);background:rgba(168,230,255,0.07);}
+.main{margin-left:200px;padding:1.75rem;}
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.75rem;}
+.topbar h1{font-family:'Bebas Neue',cursive;font-size:1.8rem;letter-spacing:0.06em;}
+.page{display:none;} .page.active{display:block;}
+label{display:block;font-size:0.75rem;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;color:var(--muted);margin-bottom:5px;}
+input,textarea,select{width:100%;background:rgba(168,230,255,0.04);border:1px solid var(--border);border-radius:8px;color:#EEF8FF;font-family:Inter,sans-serif;font-size:0.88rem;padding:9px 12px;outline:none;transition:border-color 0.2s;margin-bottom:1rem;}
+input:focus,textarea:focus,select:focus{border-color:var(--accent);}
+textarea{min-height:90px;resize:vertical;}
+select option{background:#001828;}
+.fg{margin-bottom:0;}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 20px;border-radius:7px;font-size:0.84rem;font-weight:600;cursor:pointer;border:none;font-family:Inter,sans-serif;transition:all 0.2s;}
+.btn-p{background:var(--blue);color:white;} .btn-p:hover{background:#2A8FAF;}
+.btn-d{background:rgba(248,113,113,0.15);color:var(--red);border:1px solid rgba(248,113,113,0.25);} .btn-d:hover{background:rgba(248,113,113,0.25);}
+.btn-s{background:transparent;color:var(--muted);border:1px solid var(--border);} .btn-s:hover{color:#EEF8FF;border-color:rgba(168,230,255,0.3);}
+.form-box{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:1.5rem;}
+.form-box h3{font-size:0.88rem;font-weight:600;margin-bottom:1.25rem;color:var(--accent);}
+.list-box{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.list-item{display:flex;align-items:center;justify-content:space-between;padding:0.9rem 1.25rem;border-bottom:1px solid var(--border);gap:1rem;}
+.list-item:last-child{border-bottom:none;}
+.li-main{font-size:0.86rem;font-weight:500;margin-bottom:0.2rem;}
+.li-sub{font-size:0.75rem;color:var(--muted);}
+.tag{font-size:0.65rem;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;padding:2px 8px;border-radius:4px;}
+.empty{text-align:center;padding:2.5rem;color:var(--muted);font-size:0.85rem;}
+.toast{position:fixed;bottom:1.5rem;right:1.5rem;padding:10px 18px;border-radius:9px;font-size:0.83rem;font-weight:500;z-index:999;transform:translateY(80px);opacity:0;transition:all 0.3s;}
+.toast.ok{background:rgba(74,222,128,0.15);border:1px solid rgba(74,222,128,0.3);color:var(--green);}
+.toast.err{background:rgba(248,113,113,0.15);border:1px solid rgba(248,113,113,0.3);color:var(--red);}
+.toast.show{transform:translateY(0);opacity:1;}
+.logout-btn{font-size:0.75rem;color:var(--muted);cursor:pointer;background:none;border:none;font-family:Inter,sans-serif;padding:0.5rem 1rem;position:absolute;bottom:1rem;left:0;right:0;text-align:center;}
+.logout-btn:hover{color:var(--red);}
+</style>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login" id="login-screen">
+  <div class="login-box">
+    <h1>🔐 ADMIN</h1>
+    <p>Accès réservé à l'équipe OritalPlay</p>
+    <div class="fg"><label>Email</label><input type="email" id="email" placeholder="admin@oritalplay.fr" onkeydown="if(event.key==='Enter')document.getElementById('pwd').focus()"></div>
+    <div class="fg"><label>Mot de passe</label><input type="password" id="pwd" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <p id="login-err" style="color:var(--red);font-size:0.8rem;margin:0.5rem 0 0.75rem;display:none;">Email ou mot de passe incorrect.</p>
+    <button class="btn btn-p" style="width:100%;justify-content:center;" onclick="doLogin()">Connexion</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="app" id="app">
+  <aside class="sidebar">
+    <h2>⚡ ADMIN</h2>
+    <div class="snav active" onclick="goTo('annonces')">📣 Annonces</div>
+    <div class="snav" onclick="goTo('captures')">📸 Captures</div>
+    <div class="snav" onclick="goTo('calendrier')">📅 Calendrier</div>
+    <div class="snav" onclick="goTo('staff')">👥 Staff</div>
+    <button class="logout-btn" onclick="logout()">Déconnexion</button>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <h1 id="page-title">ANNONCES</h1>
+      <a href="index.html" class="btn btn-s" target="_blank">← Voir le site</a>
+    </div>
+
+    <!-- ANNONCES -->
+    <div class="page active" id="page-annonces">
+      <div class="form-box">
+        <h3>➕ Nouvelle annonce</h3>
+        <div class="row">
+          <div><label>Titre</label><input id="an-titre" placeholder="ex: Mise à jour OritalNations"></div>
+          <div><label>Jeu / Catégorie</label><input id="an-jeu" placeholder="ex: Minecraft, Général..."></div>
+        </div>
+        <div class="row">
+          <div><label>Tag</label><select id="an-tag"><option value="info">Info</option><option value="update">Mise à jour</option><option value="event">Évènement</option><option value="important">Important</option></select></div>
+          <div></div>
+        </div>
+        <label>Contenu</label><textarea id="an-contenu" placeholder="Contenu de l'annonce..."></textarea>
+        <button class="btn btn-p" onclick="addAnnonce()">📣 Publier</button>
+      </div>
+      <div class="list-box" id="an-list"><div class="empty">Chargement...</div></div>
+    </div>
+
+    <!-- CAPTURES -->
+    <div class="page" id="page-captures">
+      <div class="form-box">
+        <h3>➕ Ajouter une capture</h3>
+        <div class="row">
+          <div><label>Titre</label><input id="cap-titre" placeholder="ex: Rasso FH6 — Juin 2026"></div>
+          <div><label>Jeu</label><input id="cap-jeu" placeholder="ex: Forza Horizon 6"></div>
+        </div>
+        <label>URL de l'image</label><input id="cap-url" placeholder="https://i.imgur.com/...">
+        <button class="btn btn-p" onclick="addCapture()">📸 Ajouter</button>
+      </div>
+      <div class="list-box" id="cap-list"><div class="empty">Chargement...</div></div>
+    </div>
+
+    <!-- CALENDRIER -->
+    <div class="page" id="page-calendrier">
+      <div class="form-box">
+        <h3>➕ Nouvel évènement</h3>
+        <div class="row">
+          <div><label>Titre</label><input id="ev-titre" placeholder="ex: Tournoi Rocket League"></div>
+          <div><label>Jeu</label><input id="ev-jeu" placeholder="ex: Rocket League"></div>
+        </div>
+        <div class="row">
+          <div><label>Date</label><input id="ev-date" type="date"></div>
+          <div><label>Places</label><input id="ev-places" placeholder="ex: 16 places"></div>
+        </div>
+        <div class="row">
+          <div><label>Statut</label><select id="ev-statut"><option value="ouvert">Inscriptions ouvertes</option><option value="complet">Complet</option></select></div>
+          <div></div>
+        </div>
+        <label>Description</label><textarea id="ev-desc" placeholder="Décris l'évènement..." style="min-height:70px;"></textarea>
+        <button class="btn btn-p" onclick="addEvent()">📅 Publier</button>
+      </div>
+      <div class="list-box" id="ev-list"><div class="empty">Chargement...</div></div>
+    </div>
+
+    <!-- STAFF -->
+    <div class="page" id="page-staff">
+      <div class="form-box">
+        <h3>➕ Ajouter un membre du staff</h3>
+        <div class="row">
+          <div><label>Pseudo Discord</label><input id="st-pseudo" placeholder="ex: EL PAPAPEUR"></div>
+          <div><label>Rôle</label><input id="st-role" placeholder="ex: Fondateur, Modérateur..."></div>
+        </div>
+        <div class="row">
+          <div><label>Emoji avatar</label><input id="st-emoji" placeholder="ex: 👑"></div>
+          <div><label>Ordre d'affichage</label><input id="st-ordre" type="number" placeholder="1" min="1"></div>
+        </div>
+        <button class="btn btn-p" onclick="addStaff()">👥 Ajouter</button>
+      </div>
+      <div class="list-box" id="st-list"><div class="empty">Chargement...</div></div>
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAqek5Bp3fAaCJ3TgbBSfBYKw9YdtTDG5M",
+  authDomain: "oritalplayapi.firebaseapp.com",
+  projectId: "oritalplayapi",
+  storageBucket: "oritalplayapi.firebasestorage.app",
+  messagingSenderId: "998308517138",
+  appId: "1:998308517138:web:a35055fda2058a6a9d4fcb"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+// ── AUTH ──
+onAuthStateChanged(auth, user => {
+  if(user) {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    loadAll();
+  } else {
+    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('app').style.display = 'none';
+  }
+});
+
+window.doLogin = async () => {
+  const email = document.getElementById('email').value.trim();
+  const pwd = document.getElementById('pwd').value;
+  const err = document.getElementById('login-err');
+  err.style.display = 'none';
+  try {
+    await signInWithEmailAndPassword(auth, email, pwd);
+  } catch(e) {
+    err.style.display = 'block';
+    document.getElementById('pwd').value = '';
+  }
+};
+
+window.logout = async () => {
+  await signOut(auth);
+};
+
+// ── NAV ──
+window.goTo = (page) => {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.snav').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  document.querySelectorAll('.snav').forEach(n=>{if(n.textContent.toLowerCase().includes(page.slice(0,4)))n.classList.add('active');});
+  const titles = {annonces:'ANNONCES',captures:'CAPTURES',calendrier:'CALENDRIER',staff:'STAFF'};
+  document.getElementById('page-title').textContent = titles[page]||page.toUpperCase();
+};
+
+// ── TOAST ──
+function toast(msg, ok=true) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast '+(ok?'ok':'err');
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 3000);
+}
+
+// ── ANNONCES ──
+window.addAnnonce = async () => {
+  const titre=document.getElementById('an-titre').value.trim();
+  const contenu=document.getElementById('an-contenu').value.trim();
+  if(!titre||!contenu){toast('Titre et contenu requis',false);return;}
+  await addDoc(collection(db,'annonces'),{titre,contenu,jeu:document.getElementById('an-jeu').value.trim(),tag:document.getElementById('an-tag').value,date:serverTimestamp()});
+  ['an-titre','an-jeu','an-contenu'].forEach(id=>document.getElementById(id).value='');
+  toast('✅ Annonce publiée !'); loadAnnonces();
+};
+
+async function loadAnnonces() {
+  const snap = await getDocs(query(collection(db,'annonces'),orderBy('date','desc')));
+  const el = document.getElementById('an-list');
+  if(snap.empty){el.innerHTML='<div class="empty">Aucune annonce.</div>';return;}
+  el.innerHTML = snap.docs.map(d=>{
+    const a=d.data();
+    return `<div class="list-item">
+      <div><div class="li-main">${a.titre}</div><div class="li-sub">${a.tag?.toUpperCase()||'INFO'} · ${a.jeu||'Général'}</div></div>
+      <button class="btn btn-d" onclick="delDoc('annonces','${d.id}',loadAnnonces)">Supprimer</button>
+    </div>`;
+  }).join('');
+}
+
+// ── CAPTURES ──
+window.addCapture = async () => {
+  const titre=document.getElementById('cap-titre').value.trim();
+  const url=document.getElementById('cap-url').value.trim();
+  if(!titre||!url){toast('Titre et URL requis',false);return;}
+  await addDoc(collection(db,'captures'),{titre,url,jeu:document.getElementById('cap-jeu').value.trim(),date:serverTimestamp()});
+  ['cap-titre','cap-jeu','cap-url'].forEach(id=>document.getElementById(id).value='');
+  toast('✅ Capture ajoutée !'); loadCaptures();
+};
+
+async function loadCaptures() {
+  const snap = await getDocs(query(collection(db,'captures'),orderBy('date','desc')));
+  const el = document.getElementById('cap-list');
+  if(snap.empty){el.innerHTML='<div class="empty">Aucune capture.</div>';return;}
+  el.innerHTML = snap.docs.map(d=>{
+    const c=d.data();
+    return `<div class="list-item">
+      <div><div class="li-main">${c.titre}</div><div class="li-sub">${c.jeu||''}</div></div>
+      <div style="display:flex;gap:0.5rem;align-items:center;">
+        <img src="${c.url}" style="width:60px;height:36px;object-fit:cover;border-radius:5px;border:1px solid var(--border);">
+        <button class="btn btn-d" onclick="delDoc('captures','${d.id}',loadCaptures)">Suppr.</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── CALENDRIER ──
+window.addEvent = async () => {
+  const titre=document.getElementById('ev-titre').value.trim();
+  const desc=document.getElementById('ev-desc').value.trim();
+  const dateVal=document.getElementById('ev-date').value;
+  if(!titre||!desc){toast('Titre et description requis',false);return;}
+  const dateStr = dateVal ? new Date(dateVal).toLocaleDateString('fr-FR',{day:'numeric',month:'short',year:'numeric'}) : '';
+  await addDoc(collection(db,'events'),{titre,description:desc,jeu:document.getElementById('ev-jeu').value.trim(),places:document.getElementById('ev-places').value.trim(),statut:document.getElementById('ev-statut').value,dateStr,date:dateVal?new Date(dateVal):serverTimestamp()});
+  ['ev-titre','ev-jeu','ev-date','ev-places','ev-desc'].forEach(id=>document.getElementById(id).value='');
+  toast('✅ Évènement publié !'); loadEvents();
+};
+
+async function loadEvents() {
+  const snap = await getDocs(query(collection(db,'events'),orderBy('date','asc')));
+  const el = document.getElementById('ev-list');
+  if(snap.empty){el.innerHTML='<div class="empty">Aucun évènement.</div>';return;}
+  el.innerHTML = snap.docs.map(d=>{
+    const e=d.data();
+    return `<div class="list-item">
+      <div><div class="li-main">${e.titre}</div><div class="li-sub">${e.dateStr||''} · ${e.jeu||''} · ${e.statut}</div></div>
+      <button class="btn btn-d" onclick="delDoc('events','${d.id}',loadEvents)">Supprimer</button>
+    </div>`;
+  }).join('');
+}
+
+// ── STAFF ──
+window.addStaff = async () => {
+  const pseudo=document.getElementById('st-pseudo').value.trim();
+  const role=document.getElementById('st-role').value.trim();
+  if(!pseudo||!role){toast('Pseudo et rôle requis',false);return;}
+  await addDoc(collection(db,'staff'),{pseudo,role,emoji:document.getElementById('st-emoji').value||'👤',ordre:parseInt(document.getElementById('st-ordre').value)||99});
+  ['st-pseudo','st-role','st-emoji','st-ordre'].forEach(id=>document.getElementById(id).value='');
+  toast('✅ Staff ajouté !'); loadStaff();
+};
+
+async function loadStaff() {
+  const snap = await getDocs(query(collection(db,'staff'),orderBy('ordre','asc')));
+  const el = document.getElementById('st-list');
+  if(snap.empty){el.innerHTML='<div class="empty">Aucun membre du staff.</div>';return;}
+  el.innerHTML = snap.docs.map(d=>{
+    const s=d.data();
+    return `<div class="list-item">
+      <div style="display:flex;align-items:center;gap:0.75rem;">
+        <div style="width:36px;height:36px;border-radius:50%;background:rgba(168,230,255,0.1);display:flex;align-items:center;justify-content:center;font-size:1.1rem;">${s.emoji||'👤'}</div>
+        <div><div class="li-main">${s.pseudo}</div><div class="li-sub">${s.role}</div></div>
+      </div>
+      <button class="btn btn-d" onclick="delDoc('staff','${d.id}',loadStaff)">Supprimer</button>
+    </div>`;
+  }).join('');
+}
+
+// ── DELETE ──
+window.delDoc = async (col, id, reload) => {
+  if(!confirm('Supprimer ?')) return;
+  await deleteDoc(doc(db,col,id));
+  toast('🗑️ Supprimé');
+  reload();
+};
+
+window.loadAnnonces = loadAnnonces;
+window.loadCaptures = loadCaptures;
+window.loadEvents = loadEvents;
+window.loadStaff = loadStaff;
+
+function loadAll(){loadAnnonces();loadCaptures();loadEvents();loadStaff();}
+</script>
+</body>
+</html>
